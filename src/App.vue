@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <header class="app-header">
-      <h1>🎮 Babylon.js 代码演示平台</h1>
+      <h1>🎮 BabylonSDK代码演示平台</h1>
       <div class="example-selector">
         <label>选择示例：</label>
         <select v-model="selectedExample" @change="loadExample">
@@ -64,14 +64,14 @@ const handleRunCode = (code) => {
     showError('Babylon.js 场景还未准备好，请稍候...')
     return
   }
-  
+
   if (!viewerRef.value) {
     showError('渲染器未初始化')
     return
   }
-  
+
   const result = viewerRef.value.executeCode(code)
-  
+
   if (result.success) {
     showError('✓ 代码执行成功！', 'success')
   } else {
@@ -217,10 +217,10 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
   }
 }
 </style>
-
