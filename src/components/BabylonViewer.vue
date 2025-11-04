@@ -16,6 +16,8 @@ const renderCanvas = ref(null)
 let engine = null
 let scene = null
 let camera = null
+let resizeObserver = null
+let windowResizeHandler = null
 
 const emit = defineEmits(['ready'])
 
@@ -24,6 +26,19 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+    // 清理 ResizeObserver
+    if (resizeObserver) {
+        resizeObserver.disconnect()
+        resizeObserver = null
+    }
+
+    // 清理窗口大小监听
+    if (windowResizeHandler) {
+        window.removeEventListener('resize', windowResizeHandler)
+        windowResizeHandler = null
+    }
+
+    // 清理引擎
     if (engine) {
         engine.dispose()
     }
@@ -71,17 +86,28 @@ const initBabylon = () => {
     light2.intensity = 0.5
 
     // 创建默认场景
-    createDefaultScene()
-
-    // 渲染循环
+    createDefaultScene()    // 渲染循环
     engine.runRenderLoop(() => {
         scene.render()
     })
 
-    // 响应式调整
-    window.addEventListener('resize', () => {
-        engine.resize()
-    })
+    // 监听窗口大小变化
+    windowResizeHandler = () => {
+        if (engine) {
+            engine.resize()
+        }
+    }
+    window.addEventListener('resize', windowResizeHandler)
+
+    // 监听 Canvas 容器大小变化（用于布局切换和分隔条拖动）
+    if (renderCanvas.value) {
+        resizeObserver = new ResizeObserver(() => {
+            if (engine) {
+                engine.resize()
+            }
+        })
+        resizeObserver.observe(renderCanvas.value)
+    }
 
     // 通知父组件场景已准备好
     emit('ready', { scene, engine, camera })
@@ -146,10 +172,17 @@ const executeCode = (code) => {
     }
 }
 
+const handleResize = () => {
+    if (engine) {
+        engine.resize()
+    }
+}
+
 defineExpose({
     executeCode,
     clearScene,
     resetCamera,
+    resize: handleResize,
     getScene: () => scene,
     getEngine: () => engine,
     getCamera: () => camera
